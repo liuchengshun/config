@@ -1,8 +1,22 @@
 package config
 
-import "os"
+func init() {
+	CONF = &config{}
+}
 
-func LoadConfig(path string) {
-	f, err := os.ReadFile(path)
-	
+var CONF *config
+
+type config struct {
+	SetReader
+
+	fileType fileType
+}
+
+func (c *config) LoadConfig(path string) {
+	ftype := parseFileType(path)
+
+}
+
+func (c *config) loadKeyValueConfig(path string) {
+
 }
