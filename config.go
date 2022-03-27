@@ -1,22 +1,19 @@
 package config
 
-func init() {
-	CONF = &config{}
+var CONF configer
+
+type configer interface {
+	LoadConfiguration(path string)
+
+	ReadString(group, key string) string
+	ReadInt(group, key string) int64
+	ReadBool(group, key string) bool
+
+	RegisterGroup(g *Group)
+
+	initGroups()
 }
 
-var CONF *config
-
-type config struct {
-	SetReader
-
-	fileType fileType
-}
-
-func (c *config) LoadConfig(path string) {
-	ftype := parseFileType(path)
-
-}
-
-func (c *config) loadKeyValueConfig(path string) {
+func LoadConfiguration(path string) {
 
 }

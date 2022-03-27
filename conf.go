@@ -1,59 +1,30 @@
 package config
 
-import (
-	"bufio"
-	"bytes"
-	"fmt"
-	"os"
-	"strings"
-)
-
 type conf struct {
-	groups []*group
+	confLoader
+
+	groups []*Group
 }
 
-func newConf() *conf {
+func newConf(path string) *conf {
 	return &conf{
-		groups: make([]*group, 0),
+		groups:     make([]*Group, 0),
+		confLoader: newFileLoader(path),
 	}
 }
 
-func (c *conf) loadConfig(path string) {
-	filebytes, err := os.ReadFile(path)
-	if err != nil {
-		panic(err)
-	}
-	rendered := bytes.NewReader(filebytes)
+func (c *conf) initGroups() {
+	configs := c.loadCONF()
 
-	var group *group
-	scanner := bufio.NewScanner(rendered)
-	scanner.Split(bufio.ScanLines)
-	for scanner.Scan() {
-		text := scanner.Text()
-
-		if strings.HasPrefix(text, "[") && strings.HasSuffix(text, "]") && len(text) >= 3 {
-			name := text[1 : len(text)-2]
-			group = c.getGroup(name)
-			continue
+	for gname, values := range configs {
+		group := c.getGroup(gname)
+		for key, value := range values {
+			group.set(key, value)
 		}
-
-		parts := strings.Split(text, "=")
-		if len(parts) != 2 {
-			panic(fmt.Sprintf("the config message is error, does not support the format: %s", text))
-		}
-		key := strings.TrimSpace(parts[0])
-		value := strings.TrimSpace(parts[1])
-		if group != nil {
-			group.SetString(key, value)
-		}
-	}
-
-	if scanner.Err() != nil {
-		panic(err)
 	}
 }
 
-func (c *conf) getGroup(name string) *group {
+func (c *conf) getGroup(name string) *Group {
 	for _, g := range c.groups {
 		if name == g.name {
 			return g
@@ -64,6 +35,46 @@ func (c *conf) getGroup(name string) *group {
 	return g
 }
 
-func (c *conf) registerGroup(g *group) *group {
-	
+func (c *conf) RegisterGroup(g *Group) {
+	c.registerGroup(g)
+}
+
+func (c *conf) registerGroup(g *Group) {
+	for _, gro := range c.groups {
+		if gro.name == g.name {
+			gro.copy(g)
+			return
+		}
+	}
+	c.groups = append(c.groups, g)
+}
+
+// if read failed, will return the empty string.
+func (c *conf) ReadString(group, key string) string {
+	for _, g := range c.groups {
+		if g.name == group {
+			return g.readString(key)
+		}
+	}
+	return defaultString
+}
+
+// if read failed, ReadBool will return false.
+func (c *conf) ReadBool(group, key string) bool {
+	for _, g := range c.groups {
+		if g.name == group {
+			return g.readBool(key)
+		}
+	}
+	return defaultBool
+}
+
+// if read failed, ReadInt will return -1.
+func (c *conf) ReadInt(group, key string) int64 {
+	for _, g := range c.groups {
+		if g.name == group {
+			return g.readInt(key)
+		}
+	}
+	return defaultInt
 }
