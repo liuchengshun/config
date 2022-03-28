@@ -33,12 +33,19 @@ func (c *conf) loadConfiguration() error {
 	for scanner.Scan() {
 		text := scanner.Text()
 
+		// skip empty line.
+		if text == "" {
+			continue
+		}
+
+		// parse [group] line.
 		if strings.HasPrefix(text, "[") && strings.HasSuffix(text, "]") && len(text) >= 3 {
 			name := text[1 : len(text)-2]
 			group = c.getGroup(name)
 			continue
 		}
 
+		// parse key=value line.
 		parts := strings.Split(text, "=")
 		if len(parts) != 2 {
 			return fmt.Errorf("the config message is error, does not support the format: %s", text)
