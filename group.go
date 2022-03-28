@@ -87,19 +87,19 @@ func (g *Group) getBool(key string) bool {
 	return defaultBool
 }
 
-func (g *Group) getInt(key string) int64 {
+func (g *Group) getInt(key string) int {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
 	val, ok := g.configs[key]
 	if ok {
 		switch v := val.(type) {
-		case int64:
+		case int:
 			return v
 		case string:
 			i, err := strconv.ParseInt(v, 10, 64)
 			if err == nil {
-				return i
+				return int(i)
 			}
 		}
 	}

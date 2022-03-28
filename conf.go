@@ -111,7 +111,7 @@ func (c *conf) GetBool(group, key string) bool {
 }
 
 // if read failed, ReadInt will return -1.
-func (c *conf) GetInt(group, key string) int64 {
+func (c *conf) GetInt(group, key string) int {
 	for _, g := range c.groups {
 		if g.name == group {
 			return g.getInt(key)
