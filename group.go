@@ -106,6 +106,7 @@ func (g *Group) getInt(key string) int {
 	return defaultInt
 }
 
+// copy logic is error. waiting optimize.
 func (g *Group) copy(src *Group) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
