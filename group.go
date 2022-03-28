@@ -1,10 +1,14 @@
 package config
 
-import "strconv"
+import (
+	"strconv"
+	"sync"
+)
 
 type Group struct {
 	name    string
 	configs map[string]interface{}
+	mu      sync.RWMutex
 }
 
 func NewGroup(name string) *Group {
@@ -19,14 +23,23 @@ func (g *Group) SetString(key, v string) {
 }
 
 func (g *Group) SetBool(key string, v bool) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
 	g.configs[key] = v
 }
 
 func (g *Group) SetInt(key string, v int) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
 	g.configs[key] = v
 }
 
 func (g *Group) set(key, v string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
 	g.configs[key] = v
 }
 
@@ -37,6 +50,9 @@ const (
 )
 
 func (g *Group) readString(key string) string {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+
 	v, ok := g.configs[key]
 	if ok {
 		s, ok := v.(string)
@@ -48,6 +64,9 @@ func (g *Group) readString(key string) string {
 }
 
 func (g *Group) readBool(key string) bool {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+
 	val, ok := g.configs[key]
 	if ok {
 		b, ok := val.(bool)
@@ -69,6 +88,9 @@ func (g *Group) readBool(key string) bool {
 }
 
 func (g *Group) readInt(key string) int64 {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+
 	val, ok := g.configs[key]
 	if ok {
 		switch v := val.(type) {
@@ -85,6 +107,9 @@ func (g *Group) readInt(key string) int64 {
 }
 
 func (g *Group) copy(src *Group) {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+
 	if g.name != src.name {
 		return
 	}

@@ -1,27 +1,61 @@
 package config
 
-type conf struct {
-	confLoader
+import (
+	"bufio"
+	"bytes"
+	"fmt"
+	"os"
+	"strings"
+)
 
-	groups []*Group
+type conf struct {
+	filePath string
+	groups   []*Group
 }
 
 func newConf(path string) *conf {
 	return &conf{
-		groups:     make([]*Group, 0),
-		confLoader: newFileLoader(path),
+		groups:   make([]*Group, 0),
+		filePath: path,
 	}
 }
 
-func (c *conf) initGroups() {
-	configs := c.loadCONF()
+func (c *conf) loadConfiguration() error {
+	filebytes, err := os.ReadFile(c.filePath)
+	if err != nil {
+		return fmt.Errorf("read file data failed: %v", err)
+	}
+	rendered := bytes.NewReader(filebytes)
 
-	for gname, values := range configs {
-		group := c.getGroup(gname)
-		for key, value := range values {
-			group.set(key, value)
+	var group *Group
+	scanner := bufio.NewScanner(rendered)
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		text := scanner.Text()
+
+		if strings.HasPrefix(text, "[") && strings.HasSuffix(text, "]") && len(text) >= 3 {
+			name := text[1 : len(text)-2]
+			group = c.getGroup(name)
+			continue
+		}
+
+		parts := strings.Split(text, "=")
+		if len(parts) != 2 {
+			return fmt.Errorf("the config message is error, does not support the format: %s", text)
+		}
+		key := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+		if group != nil {
+			v := strings.Trim(value, "\"")
+			group.set(key, v)
 		}
 	}
+
+	if scanner.Err() != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *conf) getGroup(name string) *Group {

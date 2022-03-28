@@ -1,19 +1,14 @@
 package config
 
-var CONF configer
+import "sync"
 
-type configer interface {
-	LoadConfiguration(path string)
+var CONF *conf
 
-	ReadString(group, key string) string
-	ReadInt(group, key string) int64
-	ReadBool(group, key string) bool
+var once sync.Once
 
-	RegisterGroup(g *Group)
-
-	initGroups()
-}
-
-func LoadConfiguration(path string) {
-
+func LoadConfiguration(filePath string) error {
+	once.Do(func() {
+		CONF = newConf(filePath)
+	})
+	return CONF.loadConfiguration()
 }
