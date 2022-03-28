@@ -40,7 +40,7 @@ func (c *conf) loadConfiguration() error {
 
 		// parse [group] line.
 		if strings.HasPrefix(text, "[") && strings.HasSuffix(text, "]") && len(text) >= 3 {
-			name := text[1 : len(text)-2]
+			name := text[1 : len(text)-1]
 			group = c.getGroup(name)
 			continue
 		}
