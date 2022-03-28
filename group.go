@@ -49,7 +49,7 @@ const (
 	defaultInt    = -1
 )
 
-func (g *Group) readString(key string) string {
+func (g *Group) getString(key string) string {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
@@ -63,7 +63,7 @@ func (g *Group) readString(key string) string {
 	return defaultString
 }
 
-func (g *Group) readBool(key string) bool {
+func (g *Group) getBool(key string) bool {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
@@ -87,7 +87,7 @@ func (g *Group) readBool(key string) bool {
 	return defaultBool
 }
 
-func (g *Group) readInt(key string) int64 {
+func (g *Group) getInt(key string) int64 {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 

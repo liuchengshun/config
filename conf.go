@@ -84,30 +84,30 @@ func (c *conf) registerGroup(g *Group) {
 }
 
 // if read failed, will return the empty string.
-func (c *conf) ReadString(group, key string) string {
+func (c *conf) GetString(group, key string) string {
 	for _, g := range c.groups {
 		if g.name == group {
-			return g.readString(key)
+			return g.getString(key)
 		}
 	}
 	return defaultString
 }
 
 // if read failed, ReadBool will return false.
-func (c *conf) ReadBool(group, key string) bool {
+func (c *conf) GetBool(group, key string) bool {
 	for _, g := range c.groups {
 		if g.name == group {
-			return g.readBool(key)
+			return g.getBool(key)
 		}
 	}
 	return defaultBool
 }
 
 // if read failed, ReadInt will return -1.
-func (c *conf) ReadInt(group, key string) int64 {
+func (c *conf) GetInt(group, key string) int64 {
 	for _, g := range c.groups {
 		if g.name == group {
-			return g.readInt(key)
+			return g.getInt(key)
 		}
 	}
 	return defaultInt
