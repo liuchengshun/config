@@ -122,7 +122,7 @@ func (g *ConfGroup) copy(src *ConfGroup) {
 
 func (g *ConfGroup) clone() *ConfGroup {
 	ng := NewConfGroup(g.name)
-	for k, v := range ng.configs {
+	for k, v := range g.configs {
 		ng.set(k, v)
 	}
 	return ng
