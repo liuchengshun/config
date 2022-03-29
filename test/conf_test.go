@@ -93,8 +93,8 @@ func TestRegisterGroup(t *testing.T) {
 		{"company group", "string", "company", "address", "china"},
 		{"company group", "bool", "company", "open", true},
 		{"cup group", "string", "cup", "hight", "2dm"},
-		// {"cup group", "bool", "cup", "used", true},
-		// {"cup group", "int", "cup", "age", 2},
+		{"cup group", "bool", "cup", "used", true},
+		{"cup group", "int", "cup", "age", 2},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
