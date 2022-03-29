@@ -6,15 +6,15 @@ import (
 )
 
 type ConfGroup struct {
-	name    string
-	configs map[string]interface{}
-	mu      sync.RWMutex
+	name     string
+	elements map[string]interface{}
+	mu       sync.RWMutex
 }
 
 func NewConfGroup(name string) *ConfGroup {
 	return &ConfGroup{
-		name:    name,
-		configs: make(map[string]interface{}),
+		name:     name,
+		elements: make(map[string]interface{}),
 	}
 }
 
@@ -40,7 +40,7 @@ func (g *ConfGroup) SetInt(key string, v int) {
 }
 
 func (g *ConfGroup) set(key string, v interface{}) {
-	g.configs[key] = v
+	g.elements[key] = v
 }
 
 const (
@@ -53,7 +53,7 @@ func (g *ConfGroup) getString(key string) string {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	v, ok := g.configs[key]
+	v, ok := g.elements[key]
 	if ok {
 		s, ok := v.(string)
 		if ok {
@@ -67,7 +67,7 @@ func (g *ConfGroup) getBool(key string) bool {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	val, ok := g.configs[key]
+	val, ok := g.elements[key]
 	if ok {
 		b, ok := val.(bool)
 		if ok {
@@ -91,7 +91,7 @@ func (g *ConfGroup) getInt(key string) int {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	val, ok := g.configs[key]
+	val, ok := g.elements[key]
 	if ok {
 		switch v := val.(type) {
 		case int:
@@ -113,16 +113,16 @@ func (g *ConfGroup) copy(src *ConfGroup) {
 	if g.name != src.name {
 		return
 	}
-	for k, v := range src.configs {
-		if _, ok := g.configs[k]; !ok {
-			g.configs[k] = v
+	for k, v := range src.elements {
+		if _, ok := g.elements[k]; !ok {
+			g.elements[k] = v
 		}
 	}
 }
 
 func (g *ConfGroup) clone() *ConfGroup {
 	ng := NewConfGroup(g.name)
-	for k, v := range g.configs {
+	for k, v := range g.elements {
 		ng.set(k, v)
 	}
 	return ng
