@@ -12,7 +12,7 @@ func main() {
   
   ...
   
-  <!--  use CONF  -->
+ // read config meesage
   _ := CONF.GetString(group, key)
 }
 ```
