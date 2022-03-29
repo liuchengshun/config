@@ -6,12 +6,6 @@ import (
 	"testing"
 )
 
-// func TestMain(m *testing.M) {
-
-// }
-
-// var CONF = config.CONF
-
 func TestCONFGetValue(t *testing.T) {
 	err := config.LoadConfiguration("./testdata/config.conf")
 	if err != nil {
@@ -62,19 +56,20 @@ func TestRegisterGroup(t *testing.T) {
 	}
 	CONF := config.CONF
 
-	companyGroup := config.NewGroup("company")
+	companyGroup := config.NewConfGroup("company")
 	// want to change company name.
 	companyGroup.SetString("name", "kaopu")
 	// add new key/value.
 	companyGroup.SetString("address", "china")
 	companyGroup.SetBool("open", true)
 	// register
-	CONF.RegisterGroup(companyGroup)
+	CONF.LoadConfGroup(companyGroup)
 
-	cupGroup := config.NewGroup("cup")
+	cupGroup := config.NewConfGroup("cup")
 	cupGroup.SetString("hight", "2dm")
 	cupGroup.SetBool("used", true)
 	cupGroup.SetInt("age", 2)
+	CONF.LoadConfGroup(cupGroup)
 
 	tests := []struct {
 		name      string
@@ -97,7 +92,7 @@ func TestRegisterGroup(t *testing.T) {
 		// test new group key value.
 		{"company group", "string", "company", "address", "china"},
 		{"company group", "bool", "company", "open", true},
-		// {"cup group", "string", "cup", "hight", "2dm"},
+		{"cup group", "string", "cup", "hight", "2dm"},
 		// {"cup group", "bool", "cup", "used", true},
 		// {"cup group", "int", "cup", "age", 2},
 	}

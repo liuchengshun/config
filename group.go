@@ -5,41 +5,41 @@ import (
 	"sync"
 )
 
-type Group struct {
+type ConfGroup struct {
 	name    string
 	configs map[string]interface{}
 	mu      sync.RWMutex
 }
 
-func NewGroup(name string) *Group {
-	return &Group{
+func NewConfGroup(name string) *ConfGroup {
+	return &ConfGroup{
 		name:    name,
 		configs: make(map[string]interface{}),
 	}
 }
 
-func (g *Group) SetString(key, v string) {
+func (g *ConfGroup) SetString(key, v string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
 	g.set(key, v)
 }
 
-func (g *Group) SetBool(key string, v bool) {
+func (g *ConfGroup) SetBool(key string, v bool) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	g.configs[key] = v
+	g.set(key, v)
 }
 
-func (g *Group) SetInt(key string, v int) {
+func (g *ConfGroup) SetInt(key string, v int) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	g.configs[key] = v
+	g.set(key, v)
 }
 
-func (g *Group) set(key, v string) {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-
+func (g *ConfGroup) set(key string, v interface{}) {
 	g.configs[key] = v
 }
 
@@ -49,7 +49,7 @@ const (
 	defaultInt    = -1
 )
 
-func (g *Group) getString(key string) string {
+func (g *ConfGroup) getString(key string) string {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
@@ -63,7 +63,7 @@ func (g *Group) getString(key string) string {
 	return defaultString
 }
 
-func (g *Group) getBool(key string) bool {
+func (g *ConfGroup) getBool(key string) bool {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
@@ -87,7 +87,7 @@ func (g *Group) getBool(key string) bool {
 	return defaultBool
 }
 
-func (g *Group) getInt(key string) int {
+func (g *ConfGroup) getInt(key string) int {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
@@ -106,10 +106,9 @@ func (g *Group) getInt(key string) int {
 	return defaultInt
 }
 
-// copy logic is error. waiting optimize.
-func (g *Group) copy(src *Group) {
-	g.mu.RLock()
-	defer g.mu.RUnlock()
+func (g *ConfGroup) copy(src *ConfGroup) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
 
 	if g.name != src.name {
 		return
@@ -119,4 +118,12 @@ func (g *Group) copy(src *Group) {
 			g.configs[k] = v
 		}
 	}
+}
+
+func (g *ConfGroup) clone() *ConfGroup {
+	ng := NewConfGroup(g.name)
+	for k, v := range ng.configs {
+		ng.set(k, v)
+	}
+	return ng
 }

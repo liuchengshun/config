@@ -10,12 +10,12 @@ import (
 
 type conf struct {
 	filePath string
-	groups   []*Group
+	groups   []*ConfGroup
 }
 
 func newConf(path string) *conf {
 	return &conf{
-		groups:   make([]*Group, 0),
+		groups:   make([]*ConfGroup, 0),
 		filePath: path,
 	}
 }
@@ -27,7 +27,7 @@ func (c *conf) loadConfiguration() error {
 	}
 	rendered := bytes.NewReader(filebytes)
 
-	var group *Group
+	var group *ConfGroup
 	scanner := bufio.NewScanner(rendered)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
@@ -65,29 +65,29 @@ func (c *conf) loadConfiguration() error {
 	return nil
 }
 
-func (c *conf) getGroup(name string) *Group {
+func (c *conf) getGroup(name string) *ConfGroup {
 	for _, g := range c.groups {
 		if name == g.name {
 			return g
 		}
 	}
-	g := NewGroup(name)
+	g := NewConfGroup(name)
 	c.groups = append(c.groups, g)
 	return g
 }
 
-func (c *conf) RegisterGroup(g *Group) {
-	c.registerGroup(g)
+func (c *conf) LoadConfGroup(g *ConfGroup) {
+	c.loadConfGroup(g)
 }
 
-func (c *conf) registerGroup(g *Group) {
+func (c *conf) loadConfGroup(g *ConfGroup) {
 	for _, gro := range c.groups {
 		if gro.name == g.name {
 			gro.copy(g)
 			return
 		}
 	}
-	c.groups = append(c.groups, g)
+	c.groups = append(c.groups, g.clone())
 }
 
 // if read failed, will return the empty string.
