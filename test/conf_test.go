@@ -1,9 +1,10 @@
 package test
 
 import (
-	"config"
 	"reflect"
 	"testing"
+
+	"github.com/quixote-liu/config"
 )
 
 func TestCONFGetValue(t *testing.T) {
