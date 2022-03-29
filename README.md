@@ -13,6 +13,6 @@ func main() {
   ...
   
  // read config meesage
-  _ := CONF.GetString(group, key)
+  _ := config.CONF.GetString(group, key)
 }
 ```
