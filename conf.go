@@ -38,6 +38,11 @@ func (c *conf) loadConfiguration() error {
 			continue
 		}
 
+		// skip annotation
+		if strings.HasPrefix(text, "#") {
+			continue
+		}
+
 		// parse [group] line.
 		if strings.HasPrefix(text, "[") && strings.HasSuffix(text, "]") && len(text) >= 3 {
 			name := text[1 : len(text)-1]
@@ -46,7 +51,7 @@ func (c *conf) loadConfiguration() error {
 		}
 
 		// parse key=value line.
-		parts := strings.Split(text, "=")
+		parts := strings.Split(text, " =")
 		if len(parts) != 2 {
 			return fmt.Errorf("the config message is error, does not support the format: %s", text)
 		}

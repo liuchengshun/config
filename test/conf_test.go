@@ -31,6 +31,7 @@ func TestCONFGetValue(t *testing.T) {
 		{"language group", "string", "language", "maxcot", "mouse"},
 		{"language group", "string", "language", "version", "1.17.7"},
 		{"language group", "bool", "language", "production", true},
+		{"redis group", "string", "cache", "url", "redis://127.0.0.1:6379?db=15"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
