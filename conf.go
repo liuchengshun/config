@@ -5,29 +5,39 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
 type conf struct {
-	filePath string
-	groups   []*ConfGroup
+	confGroups    []*confGroup
+	defaultGroups []*Group
 }
 
-func newConf(path string) *conf {
+func newConf() *conf {
 	return &conf{
-		groups:   make([]*ConfGroup, 0),
-		filePath: path,
+		confGroups:    make([]*confGroup, 0),
+		defaultGroups: make([]*Group, 0),
 	}
 }
 
-func (c *conf) loadConfiguration() error {
-	filebytes, err := os.ReadFile(c.filePath)
+func (c *conf) LoadConfiguration(filePath string) error {
+	ext := filepath.Ext(filePath)
+	if ext != ".conf" {
+		return fmt.Errorf("does not support file %s with %s", filePath, ext)
+	}
+
+	return c.loadConfiguration(filePath)
+}
+
+func (c *conf) loadConfiguration(filePath string) error {
+	filebytes, err := os.ReadFile(filePath)
 	if err != nil {
 		return fmt.Errorf("read file data failed: %v", err)
 	}
 	rendered := bytes.NewReader(filebytes)
 
-	var group *ConfGroup
+	var group *confGroup
 	scanner := bufio.NewScanner(rendered)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
@@ -46,12 +56,12 @@ func (c *conf) loadConfiguration() error {
 		// parse [group] line.
 		if strings.HasPrefix(text, "[") && strings.HasSuffix(text, "]") && len(text) >= 3 {
 			name := text[1 : len(text)-1]
-			group = c.getGroup(name)
+			group = c.getConfGroup(name)
 			continue
 		}
 
 		// parse key=value line.
-		parts := strings.Split(text, " =")
+		parts := strings.SplitN(text, " = ", 2)
 		if len(parts) != 2 {
 			return fmt.Errorf("the config message is error, does not support the format: %s", text)
 		}
@@ -70,57 +80,85 @@ func (c *conf) loadConfiguration() error {
 	return nil
 }
 
-func (c *conf) getGroup(name string) *ConfGroup {
-	for _, g := range c.groups {
-		if name == g.name {
+func (c *conf) getConfGroup(name string) *confGroup {
+	for _, g := range c.confGroups {
+		if g.name == name {
 			return g
 		}
 	}
-	g := NewConfGroup(name)
-	c.groups = append(c.groups, g)
+	g := newConfGroup(name)
+	c.confGroups = append(c.confGroups, g)
 	return g
 }
 
-func (c *conf) LoadConfGroup(g *ConfGroup) {
-	c.loadConfGroup(g)
-}
-
-func (c *conf) loadConfGroup(g *ConfGroup) {
-	for _, gro := range c.groups {
+func (c *conf) RegisterGroup(g *Group) {
+	for _, gro := range c.defaultGroups {
 		if gro.name == g.name {
 			gro.copy(g)
 			return
 		}
 	}
-	c.groups = append(c.groups, g.clone())
+
+	ng := NewGroup(g.name)
+	ng.copy(g)
+	c.defaultGroups = append(c.defaultGroups, ng)
 }
 
 // if read failed, will return the empty string.
 func (c *conf) GetString(group, key string) string {
-	for _, g := range c.groups {
+	// read from conf group.
+	for _, g := range c.confGroups {
+		if g.name == group {
+			if v := g.getString(key); v == "" {
+				break
+			}
+			return g.getString(key)
+		}
+	}
+
+	// read from default group.
+	for _, g := range c.defaultGroups {
 		if g.name == group {
 			return g.getString(key)
 		}
 	}
-	return defaultString
+
+	return defaultResultString
 }
 
 // if read failed, ReadBool will return false.
 func (c *conf) GetBool(group, key string) bool {
-	for _, g := range c.groups {
+	// read from conf groups.
+	for _, g := range c.confGroups {
 		if g.name == group {
 			return g.getBool(key)
 		}
 	}
-	return defaultBool
+
+	// read from default groups.
+	for _, g := range c.defaultGroups {
+		if g.name == group {
+			fmt.Println("g.name2", g.name)
+			return g.getBool(key)
+		}
+	}
+	return defaultResultBool
 }
 
 // if read failed, ReadInt will return -1.
 func (c *conf) GetInt(group, key string) int {
-	for _, g := range c.groups {
+	// read from conf groups.
+	for _, g := range c.confGroups {
 		if g.name == group {
 			return g.getInt(key)
 		}
 	}
-	return defaultInt
+
+	// read from default groups.
+	for _, g := range c.defaultGroups {
+		if g.name == group {
+			return g.getInt(key)
+		}
+	}
+	return defaultResultInt
 }

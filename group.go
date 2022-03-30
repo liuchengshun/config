@@ -1,129 +1,87 @@
 package config
 
-import (
-	"strconv"
-	"sync"
-)
+import "sync"
 
-type ConfGroup struct {
+type Group struct {
 	name     string
 	elements map[string]interface{}
 	mu       sync.RWMutex
 }
 
-func NewConfGroup(name string) *ConfGroup {
-	return &ConfGroup{
+func NewGroup(name string) *Group {
+	return &Group{
 		name:     name,
 		elements: make(map[string]interface{}),
 	}
 }
 
-func (g *ConfGroup) SetString(key, v string) {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-
+func (g *Group) SetString(key, v string) {
 	g.set(key, v)
 }
 
-func (g *ConfGroup) SetBool(key string, v bool) {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-
+func (g *Group) SetBool(key string, v bool) {
 	g.set(key, v)
 }
 
-func (g *ConfGroup) SetInt(key string, v int) {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-
+func (g *Group) SetInt(key string, v int) {
 	g.set(key, v)
 }
 
-func (g *ConfGroup) set(key string, v interface{}) {
+func (g *Group) set(key string, v interface{}) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
 	g.elements[key] = v
 }
 
-const (
-	defaultString = ""
-	defaultBool   = false
-	defaultInt    = -1
-)
+func (g *Group) getString(key string) (v string, ok bool) {
+	val := g.get(key)
+	if val != nil {
+		v, ok = val.(string)
+		return
+	}
+	return
+}
 
-func (g *ConfGroup) getString(key string) string {
-	g.mu.RLock()
-	defer g.mu.RUnlock()
+func (g *Group) getBool(key string) (v bool, ok bool) {
+	val := g.get(key)
+	if val != nil {
+		v, ok = val.(bool)
+		return
+	}
+	return
+}
 
-	v, ok := g.elements[key]
-	if ok {
-		s, ok := v.(string)
+func (g *Group) getInt(key string) int {
+	v := g.get(key)
+	if v != nil {
+		i, ok := v.(int)
 		if ok {
-			return s
+			return i
 		}
 	}
-	return defaultString
+	return defaultResultInt
 }
 
-func (g *ConfGroup) getBool(key string) bool {
+func (g *Group) get(key string) interface{} {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	val, ok := g.elements[key]
-	if ok {
-		b, ok := val.(bool)
-		if ok {
-			return b
-		}
-		switch v := val.(type) {
-		case bool:
-			return v
-		case string:
-			b, err := strconv.ParseBool(v)
-			if err != nil {
-				return defaultBool
-			}
-			return b
-		}
-	}
-	return defaultBool
+	return g.elements[key]
 }
 
-func (g *ConfGroup) getInt(key string) int {
-	g.mu.RLock()
-	defer g.mu.RUnlock()
-
-	val, ok := g.elements[key]
-	if ok {
-		switch v := val.(type) {
-		case int:
-			return v
-		case string:
-			i, err := strconv.ParseInt(v, 10, 64)
-			if err == nil {
-				return int(i)
-			}
-		}
-	}
-	return defaultInt
-}
-
-func (g *ConfGroup) copy(src *ConfGroup) {
+func (g *Group) copy(gro *Group) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	if g.name != src.name {
+	if g.name != gro.name {
 		return
 	}
-	for k, v := range src.elements {
-		if _, ok := g.elements[k]; !ok {
+
+	for k, v := range gro.elements {
+		_, ok := g.elements[k]
+		if !ok {
 			g.elements[k] = v
 		}
 	}
-}
-
-func (g *ConfGroup) clone() *ConfGroup {
-	ng := NewConfGroup(g.name)
-	for k, v := range g.elements {
-		ng.set(k, v)
-	}
-	return ng
 }
