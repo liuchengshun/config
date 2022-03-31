@@ -17,8 +17,7 @@ func (ce *confErrors) appendError(err error) {
 }
 
 func (ce *confErrors) Error() string {
-	var errmsg string
-	errmsg = "load configuration failed, there are some errors:\n"
+	errmsg := "load configuration failed, there are some errors:\n"
 
 	for i, err := range ce.errs {
 		prefix := "\terror_" + strconv.FormatInt(int64(i), 10) + ":\t"
