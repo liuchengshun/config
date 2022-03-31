@@ -12,12 +12,14 @@ import (
 type conf struct {
 	confGroups    []*confGroup
 	defaultGroups []*Group
+	errors        *confErrors
 }
 
 func newConf() *conf {
 	return &conf{
 		confGroups:    make([]*confGroup, 0),
 		defaultGroups: make([]*Group, 0),
+		errors:        newConfError(),
 	}
 }
 
@@ -63,7 +65,9 @@ func (c *conf) loadConfiguration(filePath string) error {
 		// parse key=value line.
 		parts := strings.SplitN(text, " = ", 2)
 		if len(parts) != 2 {
-			return fmt.Errorf("the config message is error, does not support the format: %s", text)
+			err := fmt.Errorf("does not support the format: %s", text)
+			c.errors.appendError(err)
+			continue
 		}
 		key := strings.TrimSpace(parts[0])
 		value := strings.TrimSpace(parts[1])
@@ -75,6 +79,10 @@ func (c *conf) loadConfiguration(filePath string) error {
 
 	if scanner.Err() != nil {
 		return err
+	}
+
+	if !c.errors.isNil() {
+		return c.errors
 	}
 
 	return nil
