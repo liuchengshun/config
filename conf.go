@@ -112,9 +112,9 @@ func (c *conf) RegisterGroup(g *Group) {
 	c.defaultGroups = append(c.defaultGroups, ng)
 }
 
-// if get failed, will return the empty string.
+// if get failed, GetString will return the empty string.
 func (c *conf) GetString(group, key string) string {
-	// get from conf group.
+	// get from groups.
 	for _, g := range c.confGroups {
 		if g.name == group {
 			v, ok := g.getString(key)
@@ -139,9 +139,9 @@ func (c *conf) GetString(group, key string) string {
 	return ""
 }
 
-// if get failed, getBool will return false.
+// if get failed, GetBool will return false.
 func (c *conf) GetBool(group, key string) bool {
-	// get from conf groups.
+	// get from groups.
 	for _, g := range c.confGroups {
 		if g.name == group {
 			v, ok := g.getBool(key)
@@ -165,9 +165,9 @@ func (c *conf) GetBool(group, key string) bool {
 	return false
 }
 
-// if get failed, getInt will return -1.
+// if get failed, GetInt will return -1.
 func (c *conf) GetInt(group, key string) int {
-	// get from conf groups.
+	// get from groups.
 	for _, g := range c.confGroups {
 		if g.name == group {
 			v, ok := g.getInt(key)
