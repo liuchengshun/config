@@ -5,13 +5,6 @@ import (
 	"sync"
 )
 
-// the default value when get value by key failed.
-const (
-	defaultResultString = ""
-	defaultResultBool   = false
-	defaultResultInt    = 0
-)
-
 type confGroup struct {
 	name     string
 	elements map[string]string
@@ -32,39 +25,40 @@ func (g *confGroup) set(key, value string) {
 	g.elements[key] = value
 }
 
-func (g *confGroup) getString(key string) string {
+func (g *confGroup) getString(key string) (string, bool) {
 	return g.get(key)
 }
 
-func (g *confGroup) getInt(key string) int {
-	v := g.get(key)
-	if v == "" {
-		return defaultResultInt
+func (g *confGroup) getInt(key string) (int, bool) {
+	val, ok := g.get(key)
+	if !ok {
+		return 0, false
 	}
 
-	i, err := strconv.ParseInt(v, 10, 64)
+	v, err := strconv.ParseInt(val, 10, 64)
 	if err != nil {
-		return defaultResultInt
+		return 0, false
 	}
-	return int(i)
+	return int(v), true
 }
 
-func (g *confGroup) getBool(key string) bool {
-	v := g.get(key)
-	if v == "" {
-		return defaultResultBool
+func (g *confGroup) getBool(key string) (v bool, ok bool) {
+	val, ok := g.get(key)
+	if !ok {
+		return false, false
 	}
 
-	b, err := strconv.ParseBool(v)
+	b, err := strconv.ParseBool(val)
 	if err != nil {
-		return defaultResultBool
+		return false, false
 	}
-	return b
+	return b, true
 }
 
-func (g *confGroup) get(key string) string {
+func (g *confGroup) get(key string) (string, bool) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	return g.elements[key]
+	v, ok := g.elements[key]
+	return v, ok
 }

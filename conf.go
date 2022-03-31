@@ -104,61 +104,82 @@ func (c *conf) RegisterGroup(g *Group) {
 	c.defaultGroups = append(c.defaultGroups, ng)
 }
 
-// if read failed, will return the empty string.
+// if get failed, will return the empty string.
 func (c *conf) GetString(group, key string) string {
-	// read from conf group.
+	// get from conf group.
 	for _, g := range c.confGroups {
 		if g.name == group {
-			if v := g.getString(key); v == "" {
+			v, ok := g.getString(key)
+			if !ok {
 				break
 			}
-			return g.getString(key)
+			return v
 		}
 	}
 
-	// read from default group.
+	// get from default group.
 	for _, g := range c.defaultGroups {
 		if g.name == group {
-			return g.getString(key)
+			v, ok := g.getString(key)
+			if !ok {
+				break
+			}
+			return v
 		}
 	}
 
-	return defaultResultString
+	return ""
 }
 
-// if read failed, ReadBool will return false.
+// if get failed, getBool will return false.
 func (c *conf) GetBool(group, key string) bool {
-	// read from conf groups.
+	// get from conf groups.
 	for _, g := range c.confGroups {
 		if g.name == group {
-			return g.getBool(key)
+			v, ok := g.getBool(key)
+			if !ok {
+				break
+			}
+			return v
 		}
 	}
 
-	// read from default groups.
+	// get from default groups.
 	for _, g := range c.defaultGroups {
 		if g.name == group {
-			fmt.Println("g.name2", g.name)
-			return g.getBool(key)
+			v, ok := g.getBool(key)
+			if !ok {
+				break
+			}
+			return v
 		}
 	}
-	return defaultResultBool
+	return false
 }
 
-// if read failed, ReadInt will return -1.
+// if get failed, getInt will return -1.
 func (c *conf) GetInt(group, key string) int {
-	// read from conf groups.
+	// get from conf groups.
 	for _, g := range c.confGroups {
 		if g.name == group {
-			return g.getInt(key)
+			v, ok := g.getInt(key)
+			if !ok {
+				break
+			}
+			return v
 		}
 	}
 
-	// read from default groups.
+	// get from default groups.
 	for _, g := range c.defaultGroups {
 		if g.name == group {
-			return g.getInt(key)
+			v, ok := g.getInt(key)
+			if !ok {
+				break
+			}
+			return v
 		}
 	}
-	return defaultResultInt
+
+	return 0
 }

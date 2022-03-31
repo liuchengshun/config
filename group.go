@@ -35,8 +35,8 @@ func (g *Group) set(key string, v interface{}) {
 }
 
 func (g *Group) getString(key string) (v string, ok bool) {
-	val := g.get(key)
-	if val != nil {
+	val, ok := g.get(key)
+	if ok {
 		v, ok = val.(string)
 		return
 	}
@@ -44,30 +44,29 @@ func (g *Group) getString(key string) (v string, ok bool) {
 }
 
 func (g *Group) getBool(key string) (v bool, ok bool) {
-	val := g.get(key)
-	if val != nil {
+	val, ok := g.get(key)
+	if ok {
 		v, ok = val.(bool)
 		return
 	}
 	return
 }
 
-func (g *Group) getInt(key string) int {
-	v := g.get(key)
-	if v != nil {
-		i, ok := v.(int)
-		if ok {
-			return i
-		}
+func (g *Group) getInt(key string) (v int, ok bool) {
+	val, ok := g.get(key)
+	if ok {
+		v, ok = val.(int)
+		return
 	}
-	return defaultResultInt
+	return
 }
 
-func (g *Group) get(key string) interface{} {
+func (g *Group) get(key string) (interface{}, bool) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	return g.elements[key]
+	v, ok := g.elements[key]
+	return v, ok
 }
 
 func (g *Group) copy(gro *Group) {
