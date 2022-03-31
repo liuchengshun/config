@@ -1,6 +1,7 @@
 # config
-一个读取配置文件的工具
+一个读取配置文件的工具，目前暂时只支持.conf类型的配置文件。
 
+基本使用示例
 ```go
 func main() {
 	var CONF = config.CONF
@@ -18,6 +19,7 @@ func main() {
 }
 ```
 
+设置默认值示例，默认值的优先级比从配置文件里面读取的配置信息低。
 ```go
 func init() {
 	RegisterServer()
