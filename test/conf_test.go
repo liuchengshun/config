@@ -8,7 +8,7 @@ import (
 	"github.com/quixote-liu/config"
 )
 
-var CONF = config.CONF
+var CONF = config.CONF()
 
 func TestMain(m *testing.M) {
 	if err := CONF.LoadConfiguration("./testdata/config.conf"); err != nil {

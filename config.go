@@ -1,7 +1,14 @@
 package config
 
-func init() {
-	CONF = newConf()
-}
+import "sync"
 
-var CONF *conf
+var conf *Conf
+
+var once sync.Once
+
+func CONF() *Conf {
+	once.Do(func() {
+		conf = newConf()
+	})
+	return conf
+}

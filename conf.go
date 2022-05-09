@@ -6,24 +6,23 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
-type conf struct {
+type Conf struct {
 	confGroups    []*confGroup
 	defaultGroups []*Group
 	errors        *confErrors
 }
 
-func newConf() *conf {
-	return &conf{
+func newConf() *Conf {
+	return &Conf{
 		confGroups:    make([]*confGroup, 0),
 		defaultGroups: make([]*Group, 0),
 		errors:        newConfError(),
 	}
 }
 
-func (c *conf) LoadConfiguration(filePath string) error {
+func (c *Conf) LoadConfiguration(filePath string) error {
 	ext := filepath.Ext(filePath)
 	if ext != ".conf" {
 		return fmt.Errorf("does not support file %s with %s", filePath, ext)
@@ -32,7 +31,7 @@ func (c *conf) LoadConfiguration(filePath string) error {
 	return c.loadConfiguration(filePath)
 }
 
-func (c *conf) loadConfiguration(filePath string) error {
+func (c *Conf) loadConfiguration(filePath string) error {
 	filebytes, err := os.ReadFile(filePath)
 	if err != nil {
 		return fmt.Errorf("read file data failed: %v", err)
@@ -45,35 +44,26 @@ func (c *conf) loadConfiguration(filePath string) error {
 	for scanner.Scan() {
 		text := scanner.Text()
 
-		// skip empty line.
-		if text == "" {
-			continue
-		}
-
-		// skip annotation
-		if strings.HasPrefix(text, "#") {
-			continue
-		}
-
-		// parse [group] line.
-		if strings.HasPrefix(text, "[") && strings.HasSuffix(text, "]") && len(text) >= 3 {
-			name := text[1 : len(text)-1]
-			group = c.getConfGroup(name)
-			continue
-		}
-
-		// parse key=value line.
-		parts := strings.SplitN(text, " = ", 2)
-		if len(parts) != 2 {
-			err := fmt.Errorf("does not support the format: %s", text)
+		confline := newConfLine(text)
+		lineT, err := confline.parse()
+		if err != nil {
 			c.errors.appendError(err)
 			continue
 		}
-		key := strings.TrimSpace(parts[0])
-		value := strings.TrimSpace(parts[1])
-		if group != nil {
-			v := strings.Trim(value, "\"")
-			group.set(key, v)
+
+		switch lineT {
+		case lineEmpty:
+			continue
+		case lineConfGroup:
+			name := confline.confGroupName()
+			if name != "" {
+				group = c.getConfGroup(name)
+			}
+		case lineKeyValue:
+			key, value := confline.keyValue()
+			if key != "" {
+				group.set(key, value)
+			}
 		}
 	}
 
@@ -88,7 +78,7 @@ func (c *conf) loadConfiguration(filePath string) error {
 	return nil
 }
 
-func (c *conf) getConfGroup(name string) *confGroup {
+func (c *Conf) getConfGroup(name string) *confGroup {
 	for _, g := range c.confGroups {
 		if g.name == name {
 			return g
@@ -99,7 +89,7 @@ func (c *conf) getConfGroup(name string) *confGroup {
 	return g
 }
 
-func (c *conf) RegisterGroup(g *Group) {
+func (c *Conf) RegisterGroup(g *Group) {
 	for _, gro := range c.defaultGroups {
 		if gro.name == g.name {
 			gro.copy(g)
@@ -113,7 +103,7 @@ func (c *conf) RegisterGroup(g *Group) {
 }
 
 // if get failed, GetString will return the empty string.
-func (c *conf) GetString(group, key string) string {
+func (c *Conf) GetString(group, key string) string {
 	// get from groups.
 	for _, g := range c.confGroups {
 		if g.name == group {
@@ -140,7 +130,7 @@ func (c *conf) GetString(group, key string) string {
 }
 
 // if get failed, GetBool will return false.
-func (c *conf) GetBool(group, key string) bool {
+func (c *Conf) GetBool(group, key string) bool {
 	// get from groups.
 	for _, g := range c.confGroups {
 		if g.name == group {
@@ -166,7 +156,7 @@ func (c *conf) GetBool(group, key string) bool {
 }
 
 // if get failed, GetInt will return -1.
-func (c *conf) GetInt(group, key string) int {
+func (c *Conf) GetInt(group, key string) int {
 	// get from groups.
 	for _, g := range c.confGroups {
 		if g.name == group {
