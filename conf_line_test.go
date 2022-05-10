@@ -36,16 +36,21 @@ func TestParse(t *testing.T) {
 	}{
 		{"parse[0]", "#system", lineEmpty, "", "", ""},
 		{"parse[1]", "port = 8989 #system", lineKeyValue, "port", "8989", ""},
-		// {"parse[0]", "", 0, "", "", ""},
-		// {"parse[0]", "", 0, "", "", ""},
-		// {"parse[0]", "", 0, "", "", ""},
-		// {"parse[0]", "", 0, "", "", ""},
+		{"parse[2]", "#server = 127.0.0.1", lineEmpty, "", "", ""},
+		{"parse[3]", "kes #comment comment..", lineErr, "", "", ""},
+		{"parse[4]", "[email]", lineConfGroup, "", "", "email"},
+		{"parse[5]", "[email = heihei]", lineKeyValue, "[email", "heihei]", ""},
+		{"parse[6]", "[email=heihei]", lineConfGroup, "", "", "email=heihei"},
+		{"parse[7]", "address = \"china\"", lineKeyValue, "address", "china", ""},
+		{"parse[8]", "address = 'china'", lineKeyValue, "address", "china", ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			confline := newConfLine(tt.text)
 			lineT, err := confline.parse()
-			if err != nil {
+			if err != nil && lineT == lineErr {
+				return
+			} else if err != nil {
 				t.Fatalf("want nil bot got error %v", err)
 				return
 			}

@@ -45,7 +45,9 @@ func (l *confLine) parse() (lineType int, err error) {
 	if len(parts) == 2 {
 		l.lineT = lineKeyValue
 		l.key = parts[0]
-		l.value = strings.Trim(parts[1], "\"")
+		value := strings.Trim(parts[1], "\"")
+		value = strings.Trim(value, "'")
+		l.value = value
 		return l.lineT, nil
 	} else if len(parts) != 2 && len(parts) > 0 {
 		l.lineT = lineErr
