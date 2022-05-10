@@ -61,7 +61,7 @@ func (c *Conf) loadConfiguration(filePath string) error {
 			}
 		case lineKeyValue:
 			key, value := confline.keyValue()
-			if key != "" {
+			if key != "" && group != nil {
 				group.set(key, value)
 			}
 		}
