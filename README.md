@@ -3,8 +3,14 @@
 
 基本使用示例
 ```go
+package main
+
+import (
+	"github.com/quixote-liu/config"
+)
+
 func main() {
-	var CONF = config.CONF
+	var CONF = config.CONF()
 
 	if err := CONF.LoadConfiguration(yourFilePath); err != nil {
 		panic(err)
@@ -21,6 +27,12 @@ func main() {
 
 设置默认值示例，默认值的优先级比从配置文件里面读取的配置信息低。
 ```go
+package conf
+
+import (
+	"github.com/quixote-liu/config"
+)
+
 func init() {
 	RegisterServer()
 }
@@ -31,6 +43,6 @@ func RegisterServer() {
 
 	group.SetString("host", "127.0.0.1")
 	group.SetString("port", "8080")
-	config.CONF.Register(group)
+	config.CONF().Register(group)
 }
 ```
