@@ -20,7 +20,7 @@ func main() {
 
 	// get values.
 	str := CONF.GetString(group, key)
-	boolean := CONF.GetBoo(group, key)
+	boolean := CONF.GetBool(group, key)
 	integer := CONF.GetInt(group, keyy)
 }
 ```
