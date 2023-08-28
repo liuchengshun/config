@@ -59,7 +59,7 @@ func TestCONFGetValue(t *testing.T) {
 }
 
 func TestRegisterGroup(t *testing.T) {
-	companyGroup := config.NewGroup("company")
+	companyGroup := config.NewSection("company")
 	// want to change company name.
 	companyGroup.SetString("name", "kaopu")
 	// add new key/value.
@@ -68,7 +68,7 @@ func TestRegisterGroup(t *testing.T) {
 	// register
 	CONF.RegisterGroup(companyGroup)
 
-	cupGroup := config.NewGroup("cup")
+	cupGroup := config.NewSection("cup")
 	cupGroup.SetString("hight", "2dm")
 	cupGroup.SetBool("used", true)
 	cupGroup.SetInt("age", 2)

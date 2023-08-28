@@ -20,7 +20,7 @@ func (ce *confErrors) Error() string {
 	errmsg := "load configuration failed, there are some errors:\n"
 
 	for i, err := range ce.errs {
-		prefix := "\terror_" + strconv.FormatInt(int64(i), 10) + ":\t"
+		prefix := "\t[ERROR]    " + strconv.FormatInt(int64(i), 10) + ":\t"
 		errmsg += prefix + err.Error() + "\n"
 	}
 	return errmsg

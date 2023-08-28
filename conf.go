@@ -10,14 +10,14 @@ import (
 
 type Conf struct {
 	confGroups    []*confGroup
-	defaultGroups []*Group
+	defaultGroups []*Section
 	errors        *confErrors
 }
 
 func newConf() *Conf {
 	return &Conf{
 		confGroups:    make([]*confGroup, 0),
-		defaultGroups: make([]*Group, 0),
+		defaultGroups: make([]*Section, 0),
 		errors:        newConfError(),
 	}
 }
@@ -89,7 +89,7 @@ func (c *Conf) getConfGroup(name string) *confGroup {
 	return g
 }
 
-func (c *Conf) RegisterGroup(g *Group) {
+func (c *Conf) RegisterGroup(g *Section) {
 	for _, gro := range c.defaultGroups {
 		if gro.name == g.name {
 			gro.copy(g)
@@ -97,7 +97,7 @@ func (c *Conf) RegisterGroup(g *Group) {
 		}
 	}
 
-	ng := NewGroup(g.name)
+	ng := NewSection(g.name)
 	ng.copy(g)
 	c.defaultGroups = append(c.defaultGroups, ng)
 }

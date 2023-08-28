@@ -42,6 +42,7 @@ func (g *confGroup) getInt(key string) (int, bool) {
 	return int(v), true
 }
 
+// the value would be 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False.
 func (g *confGroup) getBool(key string) (v bool, ok bool) {
 	val, ok := g.get(key)
 	if !ok {
