@@ -1,4 +1,4 @@
-package config
+package inifile
 
 import (
 	"reflect"
@@ -81,4 +81,15 @@ func (s *Section) Get(key string) string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.items[key]
+}
+
+func (s *Section) Range(op func(key, value string) bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	for key, value := range s.items {
+		if ok := op(key, value); !ok {
+			return
+		}
+	}
+	return
 }

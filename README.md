@@ -1,12 +1,12 @@
-# config
-一个读取配置文件的工具，目前暂时只支持.conf类型的配置文件。
+# ini file
+read and set ini file
 
 基本使用示例
 ```go
 package main
 
 import (
-	"github.com/quixote-liu/config"
+	"github.com/quixote-liu/inifile"
 )
 
 func main() {

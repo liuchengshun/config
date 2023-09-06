@@ -1,4 +1,4 @@
-package config
+package inifile
 
 import (
 	"bufio"
@@ -8,12 +8,12 @@ import (
 )
 
 type IniFile struct {
-	sections []Section
+	sections []*Section
 }
 
 func NewIniFile() *IniFile {
 	return &IniFile{
-		sections: make([]Section, 0),
+		sections: make([]*Section, 0),
 	}
 }
 
@@ -24,6 +24,8 @@ func LoadIniFile(filePath string) (*IniFile, error) {
 	}
 	iniFile := NewIniFile()
 	scanner := bufio.NewScanner(file)
+	var curSection *Section
+	var isDupSec bool
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		// skip blank and single line comment
@@ -31,7 +33,47 @@ func LoadIniFile(filePath string) (*IniFile, error) {
 			continue
 		}
 
+		line = cleanComment(line)
+
+		section, ok := parseSectionName(line)
+		if ok {
+			if curSection != nil {
+				if curSection.name == section {
+					continue
+				}
+				if sec, ok := iniFile.GetSection(section); ok {
+					curSection = sec
+					isDupSec = true
+					continue
+				}
+				isDupSec = false
+				if err := iniFile.AddSection(curSection); err != nil {
+					return nil, err
+				}
+				curSection = NewSection(section)
+			} else {
+				curSection = NewSection(section)
+				continue
+			}
+		}
+
+		key, value, ok := parseKeyValue(line)
+		if ok {
+			if curSection == nil {
+				return nil, fmt.Errorf("missing the section before set %s=%s", key, value)
+			}
+			curSection.Set(key, value)
+			continue
+		}
+
+		return nil, fmt.Errorf("the line is unknow = %v", line)
 	}
+	if !isDupSec {
+		if err := iniFile.AddSection(curSection); err != nil {
+			return nil, err
+		}
+	}
+
 	if scanner.Err() != nil {
 		return nil, fmt.Errorf("parse file content failed: %v", err)
 	}
@@ -55,16 +97,16 @@ func parseKeyValue(line string) (key, value string, ok bool) {
 	return parts[0], parts[1], true
 }
 
-func cleanLine(line string) string {
-	hasAnnotation, hasSingleQuota, hasDoubleQuota := false, false, false
-	interceptIndex := 0
+func cleanComment(line string) string {
+	hasSingleQuota, hasDoubleQuota := false, false
+	interceptIndex := -1
 	for i := 0; i < len(line); i++ {
 		v := line[i]
 		if v == '\'' {
 			if hasSingleQuota {
 				hasDoubleQuota = false
-				hasAnnotation = false
 				hasSingleQuota = false
+				interceptIndex = -1
 				continue
 			} else {
 				hasSingleQuota = true
@@ -74,7 +116,7 @@ func cleanLine(line string) string {
 			if hasDoubleQuota {
 				hasDoubleQuota = false
 				hasSingleQuota = false
-				hasAnnotation = false
+				interceptIndex = -1
 				continue
 			} else {
 				hasDoubleQuota = true
@@ -82,11 +124,60 @@ func cleanLine(line string) string {
 		}
 		if v == '#' {
 			if !hasSingleQuota && !hasDoubleQuota {
-				return line[i+1:]
+				line = line[:i]
+				break
 			}
-			if hasSingleQuota || hasDoubleQuota {
-				interceptIndex = i // 这里需要优化！！
-			}
+			interceptIndex = i
 		}
 	}
+	if interceptIndex != -1 {
+		line = line[:interceptIndex]
+	}
+	return strings.TrimSpace(line)
+}
+
+func (f *IniFile) Section(secname string) *Section {
+	sec, _ := f.GetSection(secname)
+	return sec
+}
+
+func (f *IniFile) GetSection(secname string) (*Section, bool) {
+	for _, sec := range f.sections {
+		if sec.name == secname {
+			return sec, true
+		}
+	}
+	return NewSection(secname), false
+}
+
+func (f *IniFile) AddSection(sec *Section) error {
+	if sec == nil {
+		return nil
+	}
+	for _, s := range f.sections {
+		if s.name == sec.name {
+			return fmt.Errorf("the section %s is duplicated", sec.name)
+		}
+	}
+	f.sections = append(f.sections, sec)
+	return nil
+}
+
+func (f *IniFile) MergeSection(sec *Section) error {
+	if sec == nil {
+		return nil
+	}
+	var dupSec *Section
+	for _, s := range f.sections {
+		if s.name == sec.name {
+			dupSec = s
+		}
+	}
+	if dupSec != nil {
+		sec.Range(func(key, value string) bool {
+			dupSec.Set(key, value)
+			return true
+		})
+	}
+	return nil
 }

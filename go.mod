@@ -1,3 +1,3 @@
-module github.com/quixote-liu/config
+module github.com/quixote-liu/inifile
 
 go 1.17
