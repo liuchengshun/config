@@ -150,17 +150,15 @@ func (f *IniFile) GetSection(secname string) (*Section, bool) {
 	return NewSection(secname), false
 }
 
-func (f *IniFile) AddSection(sec *Section) error {
-	if sec == nil {
-		return nil
-	}
+func (f *IniFile) AddSection(secname string) *Section {
 	for _, s := range f.sections {
-		if s.name == sec.name {
-			return fmt.Errorf("the section %s is duplicated", sec.name)
+		if s.name == secname {
+			return s
 		}
 	}
+	sec := NewSection(secname)
 	f.sections = append(f.sections, sec)
-	return nil
+	return sec
 }
 
 func (f *IniFile) MergeSection(sec *Section) error {
