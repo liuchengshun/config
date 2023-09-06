@@ -47,9 +47,7 @@ func LoadIniFile(filePath string) (*IniFile, error) {
 					continue
 				}
 				isDupSec = false
-				if err := iniFile.AddSection(curSection); err != nil {
-					return nil, err
-				}
+				iniFile.MergeSection(curSection)
 				curSection = NewSection(section)
 			} else {
 				curSection = NewSection(section)
@@ -69,9 +67,7 @@ func LoadIniFile(filePath string) (*IniFile, error) {
 		return nil, fmt.Errorf("the line is unknow = %v", line)
 	}
 	if !isDupSec {
-		if err := iniFile.AddSection(curSection); err != nil {
-			return nil, err
-		}
+		iniFile.MergeSection(curSection)
 	}
 
 	if scanner.Err() != nil {
@@ -161,9 +157,9 @@ func (f *IniFile) AddSection(secname string) *Section {
 	return sec
 }
 
-func (f *IniFile) MergeSection(sec *Section) error {
+func (f *IniFile) MergeSection(sec *Section) {
 	if sec == nil {
-		return nil
+		return
 	}
 	var dupSec *Section
 	for _, s := range f.sections {
@@ -177,5 +173,4 @@ func (f *IniFile) MergeSection(sec *Section) error {
 			return true
 		})
 	}
-	return nil
 }
