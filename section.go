@@ -21,7 +21,7 @@ func NewSection(name string) *Section {
 }
 
 // Set sets the item when value is integer, float, map[string]string, map[string]interface{}
-// And other types like func, channel, slice ... would not be set
+// there will be panic, if other types like func, channel, slice as value
 func (s *Section) Set(key string, value interface{}) *Section {
 	if value == nil {
 		return s

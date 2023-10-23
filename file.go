@@ -25,7 +25,7 @@ func LoadIniFile(filePath string) (*IniFile, error) {
 	iniFile := NewIniFile()
 	scanner := bufio.NewScanner(file)
 	var curSection *Section
-	var isDupSec bool
+	var isDupLatestSec bool
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		// skip blank and single line comment
@@ -35,22 +35,24 @@ func LoadIniFile(filePath string) (*IniFile, error) {
 
 		line = cleanComment(line)
 
-		section, ok := parseSectionName(line)
+		secName, ok := parseSectionName(line)
 		if ok {
 			if curSection != nil {
-				if curSection.name == section {
+				// the same section appears consecutively
+				if curSection.name == secName {
 					continue
 				}
-				if sec, ok := iniFile.GetSection(section); ok {
+				// the current section is registered duplicately in the same ini file.
+				if sec, ok := iniFile.GetSection(secName); ok {
 					curSection = sec
-					isDupSec = true
+					isDupLatestSec = true
 					continue
 				}
-				isDupSec = false
+				isDupLatestSec = false
 				iniFile.MergeSection(curSection)
-				curSection = NewSection(section)
+				curSection = NewSection(secName)
 			} else {
-				curSection = NewSection(section)
+				curSection = NewSection(secName)
 				continue
 			}
 		}
@@ -66,12 +68,11 @@ func LoadIniFile(filePath string) (*IniFile, error) {
 
 		return nil, fmt.Errorf("the line is unknow = %v", line)
 	}
-	if !isDupSec {
-		iniFile.MergeSection(curSection)
-	}
-
 	if scanner.Err() != nil {
 		return nil, fmt.Errorf("parse file content failed: %v", err)
+	}
+	if !isDupLatestSec {
+		iniFile.MergeSection(curSection)
 	}
 	return iniFile, nil
 }
@@ -162,9 +163,9 @@ func (f *IniFile) MergeSection(sec *Section) {
 		return
 	}
 	var dupSec *Section
-	for _, s := range f.sections {
-		if s.name == sec.name {
-			dupSec = s
+	for i := 0; i < len(f.sections); i++ {
+		if f.sections[i].name == sec.name {
+			dupSec = f.sections[i]
 		}
 	}
 	if dupSec != nil {
@@ -173,4 +174,8 @@ func (f *IniFile) MergeSection(sec *Section) {
 			return true
 		})
 	}
+}
+
+func (f *IniFile) LoadToFile() {
+	
 }
