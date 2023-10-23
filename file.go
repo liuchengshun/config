@@ -175,7 +175,3 @@ func (f *IniFile) MergeSection(sec *Section) {
 		})
 	}
 }
-
-func (f *IniFile) LoadToFile() {
-	
-}
