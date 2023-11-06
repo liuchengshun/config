@@ -22,6 +22,7 @@ func LoadIniFile(filePath string) (*IniFile, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read file %s failed: %v", filePath, err)
 	}
+	defer file.Close()
 	iniFile := NewIniFile()
 	scanner := bufio.NewScanner(file)
 	var curSection *Section
@@ -91,7 +92,7 @@ func parseKeyValue(line string) (key, value string, ok bool) {
 	if len(parts) != 2 {
 		return "", "", false
 	}
-	return parts[0], parts[1], true
+	return strings.Trim(parts[0], " "), strings.Trim(parts[1], " "), true
 }
 
 func cleanComment(line string) string {
@@ -175,3 +176,5 @@ func (f *IniFile) MergeSection(sec *Section) {
 		})
 	}
 }
+
+// func (f *IniFile)
